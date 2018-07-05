@@ -22,6 +22,7 @@ Module.register("MMM-Globe",{
 
 	// Define required scripts.
 	getScripts: function() {
+		console.log("scripts");
 		return ["encom-globe.js", "grid.js", "data.js", "styles.css", 'defaultData.js'];
 	},
 
@@ -37,10 +38,11 @@ Module.register("MMM-Globe",{
 
 	// Define start sequence.
 	start: function() {
-		Log.info("Starting module: " + this.name);
+		console.info("Starting module: " + this.name);
 		this.globe = null;
 		this.translatedSize = this.sizeTranslate(this.config.size);
-        this.locations = this.config.locations;
+		this.locations = this.config.locations;
+		console.log(this.locations);
         this.viewAngle = this.convertDegreesToRadians(this.config.viewAngle);
         if (this.config.dayLength >= 0) {
             this.dayLength = parseFloat(this.config.dayLength);
@@ -61,7 +63,13 @@ Module.register("MMM-Globe",{
 		wrapper.setAttribute('align-text', 'center');
 		wrapper.setAttribute('font-family', 'Roboto Condensed');
 		var container = document.getElementsByClassName("module " + this.name + " " + this.name);
+		console.log(container);
 		var width = container[0].offsetWidth;
+		console.log("SIZES");
+		console.info(this.translatedSize);
+		console.info(width);
+		width=1600;
+		
 		wrapper.appendChild(this.createGlobe(width/this.translatedSize, width/this.translatedSize).domElement);
 		return wrapper;
 	},
@@ -122,6 +130,19 @@ Module.register("MMM-Globe",{
 
 	},
 	notificationReceived: function (notification, payload, sender) {
+
+		if(notification === "MMM-mqttCommand-message" && this.receiveExternalLocations === 1) {
+			this.globe.maxMarkers=   40;
+			payload.coordinates.forEach(element => {
+				this.globe.pinTopColor = element.pinTopColor;
+				this.globe.pinColor = element.pinColor;
+				this.globe.markerColor = element.markerColor;
+				var Pin = this.globe.addPin(element.latitude, element.longitude, element.text);			
+					
+			});
+		}
+
+
 		if(notification === "MMM-GoogleAnalytics-CITYINFO" && sender.name === "MMM-GoogleAnalytics" && this.receiveExternalLocations === 1) {
 			this.globe.maxMarkers=   40;
 			this.globe.pinTopColor = "#0b8e2c";
